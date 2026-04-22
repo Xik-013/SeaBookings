@@ -1,0 +1,2348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeaBookings — Analytics Dashboard Q1 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ocean: #0a4f6e;
+    --deep: #061e2e;
+    --wave: #1a7fa0;
+    --foam: #e8f4f8;
+    --sand: #f5efe6;
+    --coral: #e8694a;
+    --coral-light: #fde8e2;
+    --gold: #f0b429;
+    --gold-light: #fef6e4;
+    --green: #2daa6f;
+    --green-light: #e2f5ed;
+    --text: #0d2535;
+    --muted: #5a7a8a;
+    --border: #d0e4ec;
+    --white: #ffffff;
+    --card-bg: #ffffff;
+    --surface: #f0f7fa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--deep);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--wave);
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--wave);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .logo-text {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--white);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span {
+    color: var(--wave);
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .period-badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .bot-warning {
+    background: rgba(232,105,74,0.2);
+    border: 1px solid rgba(232,105,74,0.4);
+    color: #ffb3a0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* FILTER TOGGLE */
+  .filter-toggle {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 22px;
+    padding: 3px;
+    gap: 0;
+  }
+
+  .filter-btn {
+    padding: 5px 14px;
+    border-radius: 18px;
+    border: none;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    white-space: nowrap;
+  }
+
+  .filter-btn.active {
+    background: var(--coral);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(232,105,74,0.4);
+  }
+
+  #btn-clean.active {
+    background: var(--green);
+    box-shadow: 0 2px 8px rgba(45,170,111,0.4);
+  }
+
+  .filter-btn:hover:not(.active) {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* DATA SWITCHING */
+  .val-raw { display: inline; }
+  .val-clean { display: none; }
+  body.bot-filtered .val-raw { display: none; }
+  body.bot-filtered .val-clean { display: inline; }
+
+  .sub-raw { display: flex; }
+  .sub-clean { display: none; }
+  body.bot-filtered .sub-raw { display: none; }
+  body.bot-filtered .sub-clean { display: flex; }
+
+  .row-bot { transition: opacity 0.25s; }
+  body.bot-filtered .row-bot { opacity: 0.2; pointer-events: none; }
+
+  body.bot-filtered .alert-banner {
+    border-color: rgba(45,170,111,0.3);
+    border-left-color: var(--green);
+  }
+  body.bot-filtered .alert-banner .alert-title { color: #7ee8b4; }
+  body.bot-filtered .alert-banner .alert-text { color: rgba(255,255,255,0.5); }
+
+  .kpi-value { transition: opacity 0.15s; }
+
+  .bot-filtered-badge {
+    display: none;
+    background: rgba(45,170,111,0.15);
+    border: 1px solid rgba(45,170,111,0.3);
+    color: #7ee8b4;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  body.bot-filtered .bot-filtered-badge { display: flex; align-items: center; gap: 5px; }
+  body.bot-filtered .bot-warning { display: none; }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+
+  /* SECTION HEADERS */
+  .section-label {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(232,105,74,0.3);
+    border-left: 4px solid var(--coral);
+    border-radius: 12px;
+    padding: 16px 22px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .alert-icon { font-size: 20px; margin-top: 1px; }
+
+  .alert-body { flex: 1; }
+  .alert-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #ffb3a0;
+    margin-bottom: 4px;
+  }
+  .alert-text {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+  }
+  .alert-text strong { color: rgba(255,255,255,0.85); }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(10,79,110,0.1);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .kpi-card.blue::before { background: var(--wave); }
+  .kpi-card.red::before { background: var(--coral); }
+  .kpi-card.gold::before { background: var(--gold); }
+  .kpi-card.green::before { background: var(--green); }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .kpi-card.red .kpi-value { color: var(--coral); }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .kpi-sub .tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .tag.bad { background: var(--coral-light); color: var(--coral); }
+  .tag.warn { background: var(--gold-light); color: #b07a00; }
+  .tag.good { background: var(--green-light); color: var(--green); }
+
+  /* TWO-COL LAYOUT */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+
+  .card-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--muted);
+    font-family: 'Instrument Sans', sans-serif;
+  }
+
+  /* TRAFFIC SOURCES */
+  .traffic-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .traffic-row:last-child { border-bottom: none; }
+
+  .traffic-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .traffic-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .traffic-sessions { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 14px; }
+
+  .traffic-bar-wrap {
+    width: 80px;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .traffic-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--wave);
+  }
+
+  .traffic-note {
+    font-size: 10px;
+    color: var(--muted);
+    width: 60px;
+    text-align: right;
+  }
+
+  /* GEO TABLE */
+  .geo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .geo-row:last-child { border-bottom: none; }
+  .geo-flag { font-size: 18px; width: 28px; }
+  .geo-country { flex: 1; font-size: 13px; font-weight: 500; }
+  .geo-users { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 13px; }
+
+  .geo-signal {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 8px;
+    min-width: 50px;
+    text-align: center;
+  }
+
+  .geo-signal.real { background: var(--green-light); color: var(--green); }
+  .geo-signal.suspect { background: var(--coral-light); color: var(--coral); }
+  .geo-signal.mixed { background: var(--gold-light); color: #b07a00; }
+
+  /* ENGAGEMENT METRICS */
+  .eng-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .eng-item {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .eng-value {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .eng-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* EVENT TABLE */
+  .event-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .event-row:last-child { border-bottom: none; }
+
+  .event-name {
+    flex: 1;
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    color: var(--wave);
+  }
+
+  .event-count {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .event-bar-wrap {
+    width: 60px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .event-bar { height: 100%; border-radius: 2px; }
+  .eb-blue { background: var(--wave); }
+  .eb-green { background: var(--green); }
+  .eb-gold { background: var(--gold); }
+  .eb-coral { background: var(--coral); }
+
+  /* CONVERTERS TABLE */
+  .converter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .converter-row:last-child { border-bottom: none; }
+
+  .converter-num {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    color: var(--muted);
+    width: 18px;
+    flex-shrink: 0;
+  }
+
+  .converter-info { flex: 1; min-width: 0; }
+
+  .converter-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .converter-dest {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .converter-cr {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--green);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  .converter-visitors {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 48px;
+    text-align: right;
+  }
+
+  /* PAGE VIEWS TABLE */
+  .page-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-row:last-child { border-bottom: none; }
+  .page-name { flex: 1; font-size: 12.5px; font-weight: 500; }
+  .page-views { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 13px; }
+  .page-bar-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .page-bar { height: 100%; border-radius: 2px; background: var(--ocean); }
+
+  /* STICKINESS BLOCK */
+  .stick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stick-item {
+    text-align: center;
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 14px 10px;
+  }
+
+  .stick-value {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    margin-bottom: 3px;
+  }
+
+  .stick-label { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+  .sv-bad { color: var(--coral); }
+  .sv-warn { color: var(--gold); }
+  .sv-ok { color: var(--wave); }
+
+  /* TIPS SECTION */
+  .tips-section { margin-top: 16px; }
+
+  .tip-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tip-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(10,79,110,0.08);
+  }
+
+  .tip-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 14px 0 0 14px;
+  }
+
+  .tip-card.win::before { background: var(--green); }
+  .tip-card.test::before { background: var(--wave); }
+  .tip-card.fix::before { background: var(--coral); }
+  .tip-card.insight::before { background: var(--gold); }
+
+  .tip-emoji {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tip-content { flex: 1; }
+
+  .tip-type {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  .tip-card.win .tip-type { color: var(--green); background: var(--green-light); }
+  .tip-card.test .tip-type { color: var(--wave); background: var(--foam); }
+  .tip-card.fix .tip-type { color: var(--coral); background: var(--coral-light); }
+  .tip-card.insight .tip-type { color: #b07a00; background: var(--gold-light); }
+
+  .tip-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .tip-body {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .tip-body strong { color: var(--text); }
+
+  .tip-cta {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wave);
+    background: var(--foam);
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: default;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px 40px 48px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  footer strong { color: var(--text); }
+
+  /* TABS */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+
+  .tab-btn {
+    padding: 8px 20px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--deep);
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .tab-btn:hover:not(.active) {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* MINI CHART BARS */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 32px;
+    margin-top: 8px;
+  }
+
+  .mini-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    background: var(--wave);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+
+  .mini-bar:hover { opacity: 1; }
+  .mini-bar.peak { opacity: 1; background: var(--coral); }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* SCROLL ANIM */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .kpi-card, .tip-card, .alert-banner {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+  @media (max-width: 900px) {
+    main { padding: 20px; }
+    header { padding: 16px 20px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+  }
+
+  /* BLOG CARDS */
+  .blog-filter-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .blog-filter-btn:hover { background: var(--surface); color: var(--text); }
+  .blog-filter-btn.active { background: var(--deep); color: #fff; border-color: var(--deep); }
+
+  .blog-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(10,79,110,0.1);
+  }
+
+  .blog-card.hidden { display: none; }
+
+  .blog-cat {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    width: fit-content;
+  }
+
+  .blog-cat.seo { background: #fef3c7; color: #92400e; }
+  .blog-cat.destination { background: var(--foam); color: var(--ocean); }
+  .blog-cat.corporate { background: #f3e8ff; color: #6b21a8; }
+  .blog-cat.seasonal { background: var(--green-light); color: #166534; }
+
+  .blog-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .blog-why {
+    font-size: 11.5px;
+    color: var(--wave);
+    background: var(--foam);
+    border-radius: 8px;
+    padding: 8px 10px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .blog-body {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .blog-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .blog-tag {
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  .blog-effort {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 8px;
+    margin-left: auto;
+  }
+
+  .blog-effort.easy { background: var(--green-light); color: var(--green); }
+  .blog-effort.medium { background: var(--gold-light); color: #b07a00; }
+  .blog-effort.hard { background: var(--coral-light); color: var(--coral); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">⚓</div>
+    <div class="logo-text">Sea<span>Bookings</span></div>
+  </div>
+  <div class="header-meta">
+    <div class="period-badge">📅 Jan 22 – Apr 21, 2026 · 90 days</div>
+    <div class="bot-warning">⚠️ Includes suspected bot traffic</div>
+    <div class="bot-filtered-badge">✓ Bot traffic removed</div>
+    <div class="filter-toggle">
+      <button class="filter-btn active" id="btn-raw" onclick="setFilter('raw')">🤖 All Traffic</button>
+      <button class="filter-btn clean" id="btn-clean" onclick="setFilter('clean')">✓ Bots Removed</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ALERT -->
+  <div class="alert-banner">
+    <div class="alert-icon">🤖</div>
+    <div class="alert-body">
+      <div class="alert-title">
+        <span class="val-raw">Bot Traffic Warning — Japan, Hong Kong & Singapore Flagged</span>
+        <span class="val-clean">✓ Bot-Filtered View — Japan, Hong Kong & Singapore Excluded</span>
+      </div>
+      <div class="alert-text val-raw">
+        ~20k sessions from Japan (9.4k), Hong Kong (5.1k) and Singapore (4.5k) show <strong>zero bookings, zero scroll events, zero form starts</strong> — consistent with automated bot traffic. 
+        Toggle to "Bots Removed" to see estimated real performance.
+      </div>
+      <div class="alert-text val-clean">
+        Showing estimated real traffic after removing <strong>~20k bot sessions</strong> from JP/HK/SG. 
+        Real users: ~<strong>59k</strong> · Adjusted engagement time: ~<strong>25–35s</strong> · All metrics below reflect genuine human traffic only.
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview</button>
+    <button class="tab-btn" onclick="switchTab('traffic')">🌍 Traffic</button>
+    <button class="tab-btn" onclick="switchTab('performance')">🎯 Top Performers</button>
+    <button class="tab-btn" onclick="switchTab('ads')">📣 Google Ads</button>
+    <button class="tab-btn" onclick="switchTab('tips')">💡 Insights & Tests</button>
+    <button class="tab-btn" onclick="switchTab('blog')">✍️ Blog Ideas</button>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div class="tab-panel active" id="tab-overview">
+
+    <div class="section-label">Key Metrics</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-label">Active Users</div>
+        <div class="kpi-value">
+          <span class="val-raw">79k</span>
+          <span class="val-clean">59k</span>
+        </div>
+        <div class="kpi-sub sub-raw">
+          <span class="tag warn">~59k real</span>
+          ~20k suspected bots
+        </div>
+        <div class="kpi-sub sub-clean">
+          <span class="tag good">Bots removed</span>
+          JP / HK / SG excluded
+        </div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Avg. Engagement Time</div>
+        <div class="kpi-value">
+          <span class="val-raw">11s</span>
+          <span class="val-clean" style="color:var(--gold)">~30s</span>
+        </div>
+        <div class="kpi-sub sub-raw">
+          <span class="tag bad">Critical</span>
+          Dragged down by bots
+        </div>
+        <div class="kpi-sub sub-clean">
+          <span class="tag warn">Estimated</span>
+          Still needs improvement
+        </div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-label">Engaged Sessions / User</div>
+        <div class="kpi-value">
+          <span class="val-raw">0.21</span>
+          <span class="val-clean" style="color:var(--gold)">~0.28</span>
+        </div>
+        <div class="kpi-sub sub-raw">
+          <span class="tag bad">Very Low</span>
+          80% sessions no engagement
+        </div>
+        <div class="kpi-sub sub-clean">
+          <span class="tag warn">Still low</span>
+          Real users engage more
+        </div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Total Page Views</div>
+        <div class="kpi-value">
+          <span class="val-raw">89k</span>
+          <span class="val-clean">~67k</span>
+        </div>
+        <div class="kpi-sub sub-raw">
+          <span class="tag good">282k</span>
+          total events tracked
+        </div>
+        <div class="kpi-sub sub-clean">
+          <span class="tag good">~210k</span>
+          real events estimated
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- STICKINESS -->
+      <div class="card">
+        <div class="card-title">User Stickiness <span class="card-title-badge">Retention signals</span></div>
+        <div class="stick-grid">
+          <div class="stick-item">
+            <div class="stick-value sv-bad">2.9%</div>
+            <div class="stick-label">DAU / MAU</div>
+          </div>
+          <div class="stick-item">
+            <div class="stick-value sv-warn">19.4%</div>
+            <div class="stick-label">DAU / WAU</div>
+          </div>
+          <div class="stick-item">
+            <div class="stick-value sv-ok">15.2%</div>
+            <div class="stick-label">WAU / MAU</div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.6; background: var(--surface); border-radius: 8px; padding: 12px;">
+          <strong style="color: var(--text);">⚠️ Retention crisis.</strong> A DAU/MAU of 2.9% means the same user barely returns in a month. 
+          Travel sites typically aim for 10–15% DAU/MAU. Once users leave, they're gone — no email capture, no remarketing.
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="card">
+        <div class="card-title">Event Breakdown <span class="card-title-badge">GA4 Events</span></div>
+        <div class="event-row">
+          <div class="event-name">page_view</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-blue" style="width:100%"></div></div>
+          <div class="event-count"><span class="val-raw">89k</span><span class="val-clean">~67k</span></div>
+        </div>
+        <div class="event-row">
+          <div class="event-name">session_start</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-blue" style="width:91%"></div></div>
+          <div class="event-count"><span class="val-raw">81k</span><span class="val-clean">~61k</span></div>
+        </div>
+        <div class="event-row">
+          <div class="event-name">first_visit</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-blue" style="width:87%"></div></div>
+          <div class="event-count"><span class="val-raw">78k</span><span class="val-clean">~58k</span></div>
+        </div>
+        <div class="event-row">
+          <div class="event-name">user_engagement</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-green" style="width:26%"></div></div>
+          <div class="event-count"><span class="val-raw">23k</span><span class="val-clean">~22k</span></div>
+        </div>
+        <div class="event-row">
+          <div class="event-name">scroll</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-gold" style="width:11%"></div></div>
+          <div class="event-count"><span class="val-raw">10k</span><span class="val-clean">~9.8k</span></div>
+        </div>
+        <div class="event-row">
+          <div class="event-name">click</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-coral" style="width:1%"></div></div>
+          <div class="event-count"><span class="val-raw">930</span><span class="val-clean">~910</span></div>
+        </div>
+        <div class="event-row">
+          <div class="event-name">form_start</div>
+          <div class="event-bar-wrap"><div class="event-bar eb-coral" style="width:0.4%"></div></div>
+          <div class="event-count"><span class="val-raw">379</span><span class="val-clean">~375</span></div>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; color: var(--coral); background: var(--coral-light); border-radius: 8px; padding: 10px;">
+          <strong>⚠️ Only 379 form starts from 89k views = 0.4% funnel entry rate.</strong> Critical conversion path is broken or invisible.
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP PAGES -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-title">Top Pages <span class="card-title-badge">by Views</span></div>
+      <div class="two-col" style="margin-bottom:0">
+        <div>
+          <div class="page-row">
+            <div class="page-name">🌊 SeaBookings – Watersports (EN)</div>
+            <div class="page-bar-wrap"><div class="page-bar" style="width:100%"></div></div>
+            <div class="page-views">24k</div>
+          </div>
+          <div class="page-row">
+            <div class="page-name">🌊 SeaBookings – Deportes acuáticos (ES)</div>
+            <div class="page-bar-wrap"><div class="page-bar" style="width:18%"></div></div>
+            <div class="page-views">4.3k</div>
+          </div>
+          <div class="page-row">
+            <div class="page-name">🌊 SeaBookings – Desportos náuticos (PT)</div>
+            <div class="page-bar-wrap"><div class="page-bar" style="width:17%"></div></div>
+            <div class="page-views">4.2k</div>
+          </div>
+        </div>
+        <div>
+          <div class="page-row">
+            <div class="page-name">🚢 Vienna to Budapest by Boat</div>
+            <div class="page-bar-wrap"><div class="page-bar" style="width:8%"></div></div>
+            <div class="page-views">1.9k</div>
+          </div>
+          <div class="page-row">
+            <div class="page-name">🌊 SeaBookings – Watersport (DE)</div>
+            <div class="page-bar-wrap"><div class="page-bar" style="width:8%"></div></div>
+            <div class="page-views">1.9k</div>
+          </div>
+          <div class="page-row">
+            <div class="page-name">🏖️ How to Get to Benagil Cave ⭐</div>
+            <div class="page-bar-wrap"><div class="page-bar" style="background: var(--coral); width:4%"></div></div>
+            <div class="page-views" style="color: var(--coral);">879</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; font-size: 12px; color: #b07a00; background: var(--gold-light); border-radius: 8px; padding: 10px;">
+        ⭐ <strong>Benagil Cave</strong> is punching above its weight — informational content driving real intent traffic. Replicate this content strategy.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TRAFFIC TAB -->
+  <div class="tab-panel" id="tab-traffic">
+
+    <div class="section-label">Traffic Sources</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Acquisition Channels <span class="card-title-badge">Sessions</span></div>
+        <div class="traffic-row">
+          <div class="traffic-icon" style="background: #e8f0fe;">🎯</div>
+          <div class="traffic-name">Direct</div>
+          <div class="traffic-bar-wrap"><div class="traffic-bar" style="width:100%"></div></div>
+          <div class="traffic-sessions">54k</div>
+          <div class="traffic-note" style="color: var(--green); font-weight:600;">Strong ✓</div>
+        </div>
+        <div class="traffic-row">
+          <div class="traffic-icon" style="background: #e6f4ea;">🔍</div>
+          <div class="traffic-name">Organic Search</div>
+          <div class="traffic-bar-wrap"><div class="traffic-bar" style="width:33%;background:var(--green)"></div></div>
+          <div class="traffic-sessions">18k</div>
+          <div class="traffic-note">Growing</div>
+        </div>
+        <div class="traffic-row">
+          <div class="traffic-icon" style="background: #fff3e0;">💰</div>
+          <div class="traffic-name">Paid Search</div>
+          <div class="traffic-bar-wrap"><div class="traffic-bar" style="width:15%;background:var(--gold)"></div></div>
+          <div class="traffic-sessions">8.3k</div>
+          <div class="traffic-note" style="color: var(--coral);">No ROI data</div>
+        </div>
+        <div class="traffic-row">
+          <div class="traffic-icon" style="background: #f3e5f5;">❓</div>
+          <div class="traffic-name">Unassigned</div>
+          <div class="traffic-bar-wrap"><div class="traffic-bar" style="width:4%;background:var(--muted)"></div></div>
+          <div class="traffic-sessions">2.3k</div>
+          <div class="traffic-note">Fix UTMs</div>
+        </div>
+        <div class="traffic-row">
+          <div class="traffic-icon" style="background: #fce4ec;">🔗</div>
+          <div class="traffic-name">Referral</div>
+          <div class="traffic-bar-wrap"><div class="traffic-bar" style="width:1%;background:var(--coral)"></div></div>
+          <div class="traffic-sessions">669</div>
+          <div class="traffic-note" style="color: var(--coral);">Very low</div>
+        </div>
+        <div class="traffic-row">
+          <div class="traffic-icon" style="background: #e8f5e9;">📱</div>
+          <div class="traffic-name">Organic Social</div>
+          <div class="traffic-bar-wrap"><div class="traffic-bar" style="width:0.15%;background:var(--coral)"></div></div>
+          <div class="traffic-sessions">82</div>
+          <div class="traffic-note" style="color:var(--coral);font-weight:700;">⚠️ Dead</div>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; color: var(--coral); background: var(--coral-light); border-radius: 8px; padding: 10px;">
+          <strong>Social = 82 sessions.</strong> For a visual watersports brand this is a critical missed opportunity. Instagram & TikTok could 10x this.
+        </div>
+      </div>
+
+      <!-- GEO -->
+      <div class="card">
+        <div class="card-title">Top Countries <span class="card-title-badge">Active Users</span></div>
+        <div class="geo-row">
+          <div class="geo-flag">🇺🇸</div>
+          <div class="geo-country">United States</div>
+          <div class="geo-users">29k</div>
+          <div class="geo-signal mixed">Review</div>
+        </div>
+        <div class="geo-row row-bot">
+          <div class="geo-flag">🇯🇵</div>
+          <div class="geo-country">Japan</div>
+          <div class="geo-users">9.4k</div>
+          <div class="geo-signal suspect">🤖 Bot risk</div>
+        </div>
+        <div class="geo-row">
+          <div class="geo-flag">🇩🇪</div>
+          <div class="geo-country">Germany</div>
+          <div class="geo-users">7.7k</div>
+          <div class="geo-signal real">✓ Real</div>
+        </div>
+        <div class="geo-row">
+          <div class="geo-flag">🇬🇧</div>
+          <div class="geo-country">United Kingdom</div>
+          <div class="geo-users">5.8k</div>
+          <div class="geo-signal real">✓ Real</div>
+        </div>
+        <div class="geo-row row-bot">
+          <div class="geo-flag">🇭🇰</div>
+          <div class="geo-country">Hong Kong</div>
+          <div class="geo-users">5.1k</div>
+          <div class="geo-signal suspect">🤖 Bot risk</div>
+        </div>
+        <div class="geo-row row-bot">
+          <div class="geo-flag">🇸🇬</div>
+          <div class="geo-country">Singapore</div>
+          <div class="geo-users">4.5k</div>
+          <div class="geo-signal suspect">🤖 Bot risk</div>
+        </div>
+        <div class="geo-row">
+          <div class="geo-flag">🇵🇹</div>
+          <div class="geo-country">Portugal</div>
+          <div class="geo-users">2.9k</div>
+          <div class="geo-signal real">✓ Converting</div>
+        </div>
+        <div style="margin-top: 14px; background: var(--surface); border-radius: 8px; padding: 12px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px;">
+            <span class="val-raw">Bot-Adjusted Estimate</span>
+            <span class="val-clean">✓ Filtered View</span>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);">
+            <span class="val-raw">Removing JP + HK + SG: <strong style="color:var(--text)">~59k real users</strong> · Avg engagement likely <strong style="color:var(--text)">25–35s</strong> · True converting markets: <strong style="color:var(--green)">PT, DE, UK, US</strong></span>
+            <span class="val-clean">JP / HK / SG removed · <strong style="color:var(--text)">59k users shown</strong> · Engagement est. <strong style="color:var(--text)">~30s</strong> · Converting markets: <strong style="color:var(--green)">PT, DE, UK, US</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PERFORMANCE TAB -->
+  <div class="tab-panel" id="tab-performance">
+
+    <div class="section-label">Booking Conversions</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Top Converting Activities <span class="card-title-badge">Your CR</span></div>
+
+        <div class="converter-row">
+          <div class="converter-num">#1</div>
+          <div class="converter-info">
+            <div class="converter-name">Porto: Private Douro Boat Tour</div>
+            <div class="converter-dest">🇵🇹 Vila Nova de Gaia · Boat Tour</div>
+          </div>
+          <div class="converter-visitors">5 visits</div>
+          <div class="converter-cr">20%</div>
+        </div>
+
+        <div class="converter-row">
+          <div class="converter-num">#2</div>
+          <div class="converter-info">
+            <div class="converter-name">Valencia: 2-Hour Private Boat Cruise</div>
+            <div class="converter-dest">🇪🇸 Valencia · Boat Tour</div>
+          </div>
+          <div class="converter-visitors">23 visits</div>
+          <div class="converter-cr">8.7%</div>
+        </div>
+
+        <div class="converter-row">
+          <div class="converter-num">#3</div>
+          <div class="converter-info">
+            <div class="converter-name">Valencia: Catamaran Cruise + Paella Lunch</div>
+            <div class="converter-dest">🇪🇸 Valencia · Boat Tour</div>
+          </div>
+          <div class="converter-visitors">11 visits</div>
+          <div class="converter-cr">9.1%</div>
+        </div>
+
+        <div class="converter-row">
+          <div class="converter-num">#4</div>
+          <div class="converter-info">
+            <div class="converter-name">Valencia: Sailing Catamaran + Sunset DJ ⭐</div>
+            <div class="converter-dest">🇪🇸 Valencia · Boat Tour · 30-day growth!</div>
+          </div>
+          <div class="converter-visitors">57 visits</div>
+          <div class="converter-cr">5.3%</div>
+        </div>
+
+        <div class="converter-row">
+          <div class="converter-num">#5</div>
+          <div class="converter-info">
+            <div class="converter-name">São Miguel: Snorkeling Islet Tour</div>
+            <div class="converter-dest">🇵🇹 Azores · Adventure</div>
+          </div>
+          <div class="converter-visitors">39 visits</div>
+          <div class="converter-cr">5.1%</div>
+        </div>
+
+        <div class="converter-row">
+          <div class="converter-num">#6</div>
+          <div class="converter-info">
+            <div class="converter-name">Porto: Charming Sailboat + Port Wine</div>
+            <div class="converter-dest">🇵🇹 Vila Nova de Gaia · Boat Tour</div>
+          </div>
+          <div class="converter-visitors">14 visits</div>
+          <div class="converter-cr">7.1%</div>
+        </div>
+
+        <div class="converter-row">
+          <div class="converter-num">#7</div>
+          <div class="converter-info">
+            <div class="converter-name">Vilamoura: Reef Fishing</div>
+            <div class="converter-dest">🇵🇹 Algarve · Fishing</div>
+          </div>
+          <div class="converter-visitors">20 visits</div>
+          <div class="converter-cr">5%</div>
+        </div>
+
+      </div>
+
+      <!-- DESTINATIONS -->
+      <div class="card">
+        <div class="card-title">Converting Destinations <span class="card-title-badge">Revenue focus</span></div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+            <div style="font-weight:700; font-size:14px;">🇵🇹 Portugal (Algarve + Azores + Porto)</div>
+            <div class="tag good">Top Market</div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);">3 active bookings · Vilamoura, Vila Franca do Campo, Vila Nova de Gaia · Strong CR signals</div>
+        </div>
+
+        <div style="height:1px; background:var(--border); margin-bottom:16px;"></div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+            <div style="font-weight:700; font-size:14px;">🇪🇸 Spain (Valencia)</div>
+            <div class="tag good">Star Performer</div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);">4 bookings · Catamaran with DJ has 30-day growth signal · Highest volume converter · Feature prominently</div>
+        </div>
+
+        <div style="height:1px; background:var(--border); margin-bottom:16px;"></div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+            <div style="font-weight:700; font-size:14px;">🇦🇹 Vienna / Danube</div>
+            <div class="tag warn">Traffic only</div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);">1.9k page views "Vienna to Budapest by Boat" — strong intent traffic but no bookings yet captured. High priority to fix.</div>
+        </div>
+
+        <div style="height:1px; background:var(--border); margin-bottom:16px;"></div>
+
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+            <div style="font-weight:700; font-size:14px;">🇬🇷 Greece + 🇭🇷 Croatia</div>
+            <div class="tag warn">Latent demand</div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted);">Many listings, high visitor counts, zero conversions. Seasonal (summer) — content strategy needed now to capture early intent.</div>
+        </div>
+
+        <div style="margin-top: 16px; background: var(--surface); border-radius: 8px; padding: 12px;">
+          <div style="font-size: 12px; color: var(--text);">
+            <strong>Booking data missing for most activities</strong> — only ~10 activities show any conversion data. 
+            <span style="color: var(--coral);">⚠️ GA4 e-commerce tracking is not set up properly</span> — fixing this is the #1 priority.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TIPS TAB -->
+  <div class="tab-panel" id="tab-tips">
+
+    <div class="section-label">Wins to double down on</div>
+
+    <div class="tips-section">
+
+      <div class="tip-card win">
+        <div class="tip-emoji">🏆</div>
+        <div class="tip-content">
+          <div class="tip-type">Win</div>
+          <div class="tip-title">Valencia Catamaran with Sunset & DJ — 5.3% CR with 30-day growth</div>
+          <div class="tip-body">This is your clearest star. <strong>57 visitors, 3 bookings, growing momentum.</strong> Experiences that combine sunset + music + social elements convert because they're giftable, date-worthy, and highly shareable. Double down: make it a hero placement on the homepage, add it to paid search, build a dedicated landing page for "Valencia sunset boat experience".</div>
+          <div class="tip-cta">→ Feature on homepage hero</div>
+        </div>
+      </div>
+
+      <div class="tip-card win">
+        <div class="tip-emoji">📝</div>
+        <div class="tip-content">
+          <div class="tip-type">Win</div>
+          <div class="tip-title">Benagil Cave content page is pulling real intent traffic</div>
+          <div class="tip-body"><strong>"How to Get to Benagil Cave"</strong> (879 views) is pulling in genuine search traffic. People researching a destination → prime moment to book. The page needs a clear CTA to book a Benagil tour. Then replicate this format: "How to get to Paxos from Corfu", "Best time for whale watching in the Azores", "Vienna to Budapest by boat — what to expect".</div>
+          <div class="tip-cta">→ Add booking CTAs + replicate x10</div>
+        </div>
+      </div>
+
+      <div class="tip-card win">
+        <div class="tip-emoji">🇵🇹</div>
+        <div class="tip-content">
+          <div class="tip-type">Win</div>
+          <div class="tip-title">Portugal is your best converting market right now</div>
+          <div class="tip-body">Vilamoura, Azores, and Porto are generating real bookings. <strong>German and UK traffic aligns perfectly</strong> with Portuguese holiday destinations. Build dedicated destination landing pages for each region with local SEO in mind: "Best boat trips in the Algarve", "Whale watching São Miguel Azores", "Porto river cruise guide".</div>
+          <div class="tip-cta">→ Build PT destination pages</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label">Tests to run in the next 30 days</div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">🎨</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">Redesign the homepage above-the-fold — 11s engagement says it's not working</div>
+          <div class="tip-body">Users are bouncing before engaging. <strong>Test a new hero section</strong> with: (1) a strong visual of the best-converting experience (catamaran sunset), (2) a destination search widget front-and-center, (3) a simple value prop line ("Book watersports across Europe — instant confirmation"). A/B test this against the current design. Even a 2x improvement in dwell time would be significant.</div>
+          <div class="tip-cta">→ A/B test hero section</div>
+        </div>
+      </div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">📧</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">Add email capture — you're losing 78k new users with no way to re-engage</div>
+          <div class="tip-body">Every week, thousands of people discover SeaBookings and disappear forever. <strong>Test a destination-specific lead magnet:</strong> "Get our free Algarve Boat Trip Guide" or "Top 10 summer sailing experiences in Europe". A 2% email capture rate on 78k new users = ~1,500 leads/90 days. That's a retargeting list you own. Tools: Mailchimp popup or inline form, exit-intent trigger.</div>
+          <div class="tip-cta">→ Launch exit-intent popup</div>
+        </div>
+      </div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">📱</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">Launch Instagram Reels — 82 social sessions is unacceptable for a visual brand</div>
+          <div class="tip-body">Watersports is one of the most visually compelling travel categories. <strong>Test 3 reels per week for 30 days:</strong> sunset catamaran footage, underwater shots from snorkeling tours, dolphin watching clips from the Azores. Use the hook formula: "POV: you booked a boat in [destination]". Low production value, authentic content outperforms polished ads. Even 5k followers → meaningful organic traffic.</div>
+          <div class="tip-cta">→ Post 12 reels this month</div>
+        </div>
+      </div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">🗺️</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">"Vienna to Budapest by Boat" — 1.9k views with zero bookings. Fix the funnel.</div>
+          <div class="tip-body">This is a high-intent page that's failing to convert. <strong>Test: add a sticky booking widget</strong> to this page, link directly to the 3–5 best-rated tours on that route, and add a price anchor ("From €45 per person"). If conversion goes from 0% to even 1%, that's 19 bookings from existing traffic — no extra acquisition cost needed.</div>
+          <div class="tip-cta">→ Add booking widget to page</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label">Fixes — do these first</div>
+
+      <div class="tip-card fix">
+        <div class="tip-emoji">📊</div>
+        <div class="tip-content">
+          <div class="tip-type">Fix Now</div>
+          <div class="tip-title">Set up GA4 e-commerce tracking — you're blind to 95% of your funnel</div>
+          <div class="tip-body">Right now GA4 shows you page views and sessions but <strong>no booking funnel data</strong>. You can't see which activities get add-to-cart clicks, where users drop off, or which paid campaigns are generating ROI. Implement GA4 e-commerce events: <code>view_item</code>, <code>add_to_cart</code>, <code>begin_checkout</code>, <code>purchase</code>. This alone will unlock every other optimization decision.</div>
+          <div class="tip-cta">→ Priority #1 — developer task</div>
+        </div>
+      </div>
+
+      <div class="tip-card fix">
+        <div class="tip-emoji">🤖</div>
+        <div class="tip-content">
+          <div class="tip-type">Fix Now</div>
+          <div class="tip-title">Filter bot traffic from Japan, HK, Singapore in GA4</div>
+          <div class="tip-body">~20k sessions are almost certainly bots. This distorts every metric: avg engagement time, bounce rate, conversion rate. <strong>In GA4:</strong> Admin → Data Streams → Configure tag settings → Enable bot filtering. Also create a custom segment excluding JP/HK/SG and use that as your default view going forward. Exclude these geos from all paid campaigns immediately — you're spending money on bots.</div>
+          <div class="tip-cta">→ GA4 Admin setting (5 mins)</div>
+        </div>
+      </div>
+
+      <div class="tip-card fix">
+        <div class="tip-emoji">🔗</div>
+        <div class="tip-content">
+          <div class="tip-type">Fix Now</div>
+          <div class="tip-title">2.3k "Unassigned" sessions = broken UTM tagging</div>
+          <div class="tip-body">Unassigned traffic means campaigns are running without proper UTM parameters. You don't know where these 2.3k users came from. <strong>Audit all current campaigns</strong> (email, partnerships, paid) and ensure every link has UTM source, medium, and campaign tags. Use a UTM builder spreadsheet and make it mandatory for all team members sending traffic.</div>
+          <div class="tip-cta">→ UTM audit + fix</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label">Google Ads — Wins, Fixes & Tests</div>
+
+      <div class="tip-card fix">
+        <div class="tip-emoji">🎯</div>
+        <div class="tip-content">
+          <div class="tip-type">Fix Now</div>
+          <div class="tip-title">Switch "team building" from Broad to Exact/Phrase — it's eating 37% of your budget</div>
+          <div class="tip-body">€329 (37% of total spend) went to a single broad match keyword. Broad match triggered irrelevant searches like "escape room empresas", "entertee hire services", and competitor names like "palmayachts lisbon". <strong>Switch your top 4 spenders (team building, hire a private boat, lisbon cruises, event company) to Phrase or Exact match today.</strong> You'll lose some volume but the traffic will be far more qualified — and you stop paying for competitor and irrelevant clicks immediately.</div>
+          <div class="tip-cta">→ Keyword match type audit</div>
+        </div>
+      </div>
+
+      <div class="tip-card fix">
+        <div class="tip-emoji">🚫</div>
+        <div class="tip-content">
+          <div class="tip-type">Fix Now</div>
+          <div class="tip-title">Build a negative keyword list — you're funding competitors and irrelevant searches</div>
+          <div class="tip-body">Your search term report flagged: <strong>palmayachts, entertee hire services, escape room empresas, boot10, chloe events, bgbuilding</strong> — all competitor names or completely unrelated businesses. Add these as negative exact match keywords immediately. Also add generic terms with no booking intent: "ideas", "ideias", "consultora", "organizacion" (without boat/cruise context). Estimated budget saved: <strong>€50–80 over the next 90 days</strong> that can be redirected to your best-converting terms.</div>
+          <div class="tip-cta">→ Add negatives in Google Ads</div>
+        </div>
+      </div>
+
+      <div class="tip-card win">
+        <div class="tip-emoji">🇵🇹</div>
+        <div class="tip-content">
+          <div class="tip-type">Win</div>
+          <div class="tip-title">"Alugar barco para aniversario" has 20% CTR — Portuguese intent keywords are gold</div>
+          <div class="tip-body">This keyword is your single best performer by CTR at <strong>20.15%</strong> — people searching to rent a boat for a birthday are in high-intent, ready-to-book mode. Yet it's only received €30 in spend. The Dutch "boot huren" cluster (5 clicks, strong intent) and "actividades para empresas" (75% CTR on 3 clicks) show the same pattern. <strong>Shift budget from "team building" towards these high-intent local-language terms.</strong> Portuguese and Dutch intent searches are drastically underfunded.</div>
+          <div class="tip-cta">→ Increase bids on PT/NL intent terms</div>
+        </div>
+      </div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">📅</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">Turn ads on Sunday — it has the highest CTR of the week at 14.75%</div>
+          <div class="tip-body">Sunday CTR is <strong>14.75%</strong> — nearly double any weekday. Yet the data shows zero clicks on almost every Saturday and Sunday, meaning ads are paused on weekends. This is a significant missed opportunity: people browse and plan experiences on Sunday evenings. <strong>Test running ads on Sundays with 50% of your daily weekday budget for 4 weeks</strong> and compare conversion rate. The high CTR suggests strong intent — people are actively searching, just not being served your ads.</div>
+          <div class="tip-cta">→ Enable Sunday ad schedule</div>
+        </div>
+      </div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">⏰</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">Bid higher at 4PM and 11AM — your two peak CTR windows</div>
+          <div class="tip-body">The hourly data shows two clear peaks: <strong>4PM at 11.54% CTR</strong> (end-of-workday decision window — people planning the weekend) and <strong>11AM at 10.16%</strong> (morning research peak). Set up ad scheduling bid adjustments: +20% for 10AM–12PM and +25% for 3PM–6PM. These windows are when your audience is most likely to click and convert. The flat overnight hours (12AM–8AM = 0% CTR) should have bids reduced by 50% to stop wasting budget.</div>
+          <div class="tip-cta">→ Set dayparting bid adjustments</div>
+        </div>
+      </div>
+
+      <div class="tip-card test">
+        <div class="tip-emoji">🇳🇱</div>
+        <div class="tip-content">
+          <div class="tip-type">Test</div>
+          <div class="tip-title">Launch a dedicated Dutch campaign — "boot huren" is untapped demand</div>
+          <div class="tip-body">Netherlands drove 82 clicks (13% of all paid clicks) and Dutch search terms like "boot huren", "feestboot huren", "partyboot huren" are appearing organically in your search term report. The Dutch are prolific boat-trip bookers and Portugal/Spain are major destinations for them. <strong>Test a small dedicated NL campaign (€5/day) with Dutch-language ad copy</strong> targeting keywords like "boot huren portugal", "catamaran lissabon", "boot trip lissabon". Even a 2% conversion rate would be profitable at your current CPC.</div>
+          <div class="tip-cta">→ Create NL campaign</div>
+        </div>
+      </div>
+
+      <div class="tip-card insight">
+        <div class="tip-emoji">👩</div>
+        <div class="tip-content">
+          <div class="tip-type">Insight</div>
+          <div class="tip-title">Women 25–44 are 44% of your paid clicks — your ad creative doesn't reflect this</div>
+          <div class="tip-body">Female 25–34 (27.6%) and female 35–44 (16.3%) together are your single biggest audience segment. These are likely <strong>event organisers, experience gifters and group trip planners</strong> — not just individual bookers. Yet most boat/watersports ads default to adventure/action framing aimed at men. Test ad copy and imagery that speaks to this audience: "Plan the perfect group day on the water", "The birthday boat trip they'll never forget", "Corporate team events with a view". Match the audience you actually have.</div>
+          <div class="tip-cta">→ Write female-audience ad variants</div>
+        </div>
+      </div>
+
+      <div class="tip-card insight">
+        <div class="tip-emoji">📊</div>
+        <div class="tip-content">
+          <div class="tip-type">Insight</div>
+          <div class="tip-title">€18.43 per inquiry is your real paid metric — now you need to track inquiry-to-booking close rate</div>
+          <div class="tip-body">Ads drive inquiries and event leads. Bookings happen separately via the GetYourGuide widget. This means your funnel has two distinct legs: <strong>Ads → Inquiry</strong> (tracked, €18.43 CPI) and <strong>Inquiry → Booking</strong> (not tracked anywhere). You can't optimise what you don't measure. <strong>Start logging inquiry outcomes in a simple CRM or spreadsheet:</strong> how many inquiries convert to bookings, average booking value, and which keyword themes (team building vs private boat hire) produce higher-value clients. Even 3 months of this data will tell you exactly where to spend your ad budget.</div>
+          <div class="tip-cta">→ Track inquiry close rate</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label">Longer-term insights</div>
+
+      <div class="tip-card insight">
+        <div class="tip-emoji">🌞</div>
+        <div class="tip-content">
+          <div class="tip-type">Insight</div>
+          <div class="tip-title">Greece & Croatia have latent summer demand — act now before the season peaks</div>
+          <div class="tip-body">You have hundreds of listings in Greece (Corfu, Zakynthos, Santorini, Athens) and Croatia (Split, Hvar, Dubrovnik). These generate <strong>no conversions now but will see surge traffic in May–August.</strong> Build destination content, SEO pages, and get your paid campaigns ready before peak season. Germans and Brits book Greek island holidays 2–3 months in advance — that window is open right now.</div>
+          <div class="tip-cta">→ Q2 content calendar priority</div>
+        </div>
+      </div>
+
+      <div class="tip-card insight">
+        <div class="tip-emoji">💎</div>
+        <div class="tip-content">
+          <div class="tip-type">Insight</div>
+          <div class="tip-title">Premium + sunset + social experiences convert better — lean into the formula</div>
+          <div class="tip-body">The pattern in your booking data is clear: <strong>catamaran sunset DJ, private boat cruise with lunch, luxury champagne charter</strong> — these outperform basic tours. The thesis: people booking through SeaBookings are in "treat myself / special occasion" mindset. Test featuring premium experiences more prominently with aspirational framing ("For a day you'll never forget") rather than utility framing ("Book watersports").</div>
+          <div class="tip-cta">→ Premium collection page</div>
+        </div>
+      </div>
+
+      <div class="tip-card insight">
+        <div class="tip-emoji">🇩🇪</div>
+        <div class="tip-content">
+          <div class="tip-type">Insight</div>
+          <div class="tip-title">German traffic (7.7k) is undermonetised — you have a German homepage but no German conversion path</div>
+          <div class="tip-body">Your German-language page gets 2.6k views. Germany is your 3rd largest market and <strong>Germans are big watersports holiday spenders</strong> — Croatia, Portugal, and Spain are top destinations. But there's no evidence of a localised booking flow, German-language activity descriptions, or EUR pricing prominently displayed. A localisation sprint for DE could unlock significant revenue.</div>
+          <div class="tip-cta">→ DE localisation audit</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GOOGLE ADS TAB -->
+  <div class="tab-panel" id="tab-ads">
+
+    <div class="section-label">Campaign Summary</div>
+
+    <!-- ADS KPI ROW -->
+    <div class="kpi-grid" style="margin-bottom:24px;">
+      <div class="kpi-card blue">
+        <div class="kpi-label">Total Spend</div>
+        <div class="kpi-value">€885</div>
+        <div class="kpi-sub"><span class="tag warn">90 days</span> ~€9.80/day avg</div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-label">Total Clicks</div>
+        <div class="kpi-value">629</div>
+        <div class="kpi-sub"><span class="tag warn">Avg CPC</span> €1.41</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Inquiries (Conversions)</div>
+        <div class="kpi-value">48</div>
+        <div class="kpi-sub"><span class="tag good">7.6% CR</span> €18.43 / inquiry</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Weekend Activity</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub"><span class="tag bad">Ads off</span> Sat & Sun = dead</div>
+      </div>
+    </div>
+
+    <!-- ADS ALERT -->
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid rgba(45,170,111,0.3); border-left: 4px solid var(--green); border-radius: 12px; padding: 16px 22px; margin-bottom: 24px; display:flex; gap:14px; align-items:flex-start;">
+      <div style="font-size:20px;">ℹ️</div>
+      <div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:13px; color:#7ee8b4; margin-bottom:4px;">Conversion = Inquiry or Event Enquiry — Bookings go via GetYourGuide widget</div>
+        <div style="font-size:12.5px; color:rgba(255,255,255,0.65); line-height:1.5;">
+          The 48 conversions are <strong style="color:rgba(255,255,255,0.85)">contact form submissions and event inquiries</strong>, not direct bookings. 
+          Actual bookings happen through the GetYourGuide widget embedded on the site. This means <strong style="color:rgba(255,255,255,0.85)">€18.43 cost-per-inquiry</strong> is the right metric to track — and the goal is to improve inquiry-to-booking close rate downstream.
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+
+      <!-- KEYWORDS -->
+      <div class="card">
+        <div class="card-title">Keywords by Spend <span class="card-title-badge">All broad match</span></div>
+
+        <div style="margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">team building</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">228 clicks</div>
+            <div style="font-size:11px; background:var(--gold-light); color:#b07a00; padding:2px 7px; border-radius:6px; font-weight:600;">€329</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--muted);">7.7%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">hire a private boat</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">89 clicks</div>
+            <div style="font-size:11px; background:var(--green-light); color:var(--green); padding:2px 7px; border-radius:6px; font-weight:600;">€129</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--green); font-weight:700;">12.4%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">lisbon cruises</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">87 clicks</div>
+            <div style="font-size:11px; background:var(--green-light); color:var(--green); padding:2px 7px; border-radius:6px; font-weight:600;">€120</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--green); font-weight:700;">11.3%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">event company</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">74 clicks</div>
+            <div style="font-size:11px; background:var(--gold-light); color:#b07a00; padding:2px 7px; border-radius:6px; font-weight:600;">€103</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--muted);">8.3%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">event boat rental</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">44 clicks</div>
+            <div style="font-size:11px; background:var(--surface); color:var(--muted); padding:2px 7px; border-radius:6px; font-weight:600;">€59</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--green); font-weight:700;">12.5%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">alugar barco para aniversario</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">27 clicks</div>
+            <div style="font-size:11px; background:var(--surface); color:var(--muted); padding:2px 7px; border-radius:6px; font-weight:600;">€30</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--green); font-weight:700; color:#1a7fa0;">20.2%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding: 9px 0;">
+            <div style="flex:1; font-size:12.5px; font-weight:600;">private boat hire lisbon</div>
+            <div style="font-size:11px; color:var(--muted); width:55px; text-align:right;">21 clicks</div>
+            <div style="font-size:11px; background:var(--surface); color:var(--muted); padding:2px 7px; border-radius:6px; font-weight:600;">€27</div>
+            <div style="width:42px; text-align:right; font-size:12px; color:var(--green); font-weight:700;">12.1%</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; background:var(--coral-light); border-radius:8px; padding:10px; font-size:12px; color:var(--coral);">
+          <strong>⚠️ All keywords on Broad Match.</strong> "team building" alone = €329 / 37% of budget. You're almost certainly paying for irrelevant searches. Switch top spenders to Exact or Phrase match.
+        </div>
+      </div>
+
+      <!-- SPEND OVER TIME mini chart + devices -->
+      <div style="display:flex; flex-direction:column; gap:20px;">
+
+        <!-- DEVICES -->
+        <div class="card">
+          <div class="card-title">Device Split <span class="card-title-badge">Spend & Clicks</span></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div style="background:var(--surface); border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:500;">💻 Desktop</div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:22px;">€520</div>
+              <div style="font-size:11px; color:var(--muted);">359 clicks · 58.8%</div>
+              <div style="height:4px; background:var(--border); border-radius:2px; margin-top:8px; overflow:hidden;"><div style="width:58.8%; height:100%; background:var(--wave); border-radius:2px;"></div></div>
+            </div>
+            <div style="background:var(--surface); border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:500;">📱 Mobile</div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:22px;">€357</div>
+              <div style="font-size:11px; color:var(--muted);">264 clicks · 40.2%</div>
+              <div style="height:4px; background:var(--border); border-radius:2px; margin-top:8px; overflow:hidden;"><div style="width:40.2%; height:100%; background:var(--gold); border-radius:2px;"></div></div>
+            </div>
+          </div>
+          <div style="font-size:12px; color:var(--muted); background:var(--surface); border-radius:8px; padding:10px;">
+            Mobile is 40% of clicks at a similar CPC. Check mobile landing page experience — slow load or poor UX here = wasted spend.
+          </div>
+        </div>
+
+        <!-- LOCATIONS -->
+        <div class="card">
+          <div class="card-title">Target Locations <span class="card-title-badge">Clicks</span></div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="font-size:18px;">🇵🇹</div>
+              <div style="flex:1;">
+                <div style="font-size:13px; font-weight:600;">Portugal</div>
+                <div style="height:5px; background:var(--border); border-radius:3px; margin-top:4px; overflow:hidden;"><div style="width:100%; height:100%; background:var(--green); border-radius:3px;"></div></div>
+              </div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700;">403</div>
+              <div style="font-size:11px; color:var(--green); font-weight:600; background:var(--green-light); padding:2px 8px; border-radius:8px;">64%</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="font-size:18px;">🇪🇸</div>
+              <div style="flex:1;">
+                <div style="font-size:13px; font-weight:600;">Spain</div>
+                <div style="height:5px; background:var(--border); border-radius:3px; margin-top:4px; overflow:hidden;"><div style="width:22.9%; height:100%; background:var(--wave); border-radius:3px;"></div></div>
+              </div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700;">144</div>
+              <div style="font-size:11px; color:var(--muted); background:var(--surface); padding:2px 8px; border-radius:8px;">23%</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="font-size:18px;">🇳🇱</div>
+              <div style="flex:1;">
+                <div style="font-size:13px; font-weight:600;">Netherlands</div>
+                <div style="height:5px; background:var(--border); border-radius:3px; margin-top:4px; overflow:hidden;"><div style="width:13%; height:100%; background:var(--gold); border-radius:3px;"></div></div>
+              </div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700;">82</div>
+              <div style="font-size:11px; color:#b07a00; background:var(--gold-light); padding:2px 8px; border-radius:8px;">13%</div>
+            </div>
+          </div>
+          <div style="margin-top:12px; font-size:12px; color:var(--muted); background:var(--surface); border-radius:8px; padding:10px;">
+            Netherlands (Dutch "boot huren" / "feestboot huren" searches) is showing intent. Consider a dedicated NL campaign.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DEMOGRAPHICS -->
+    <div class="two-col" style="margin-top:20px;">
+
+      <div class="card">
+        <div class="card-title">Age Demographics <span class="card-title-badge">by Clicks</span></div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-size:12px; color:var(--muted); width:40px;">18–24</div>
+            <div style="flex:1; height:22px; background:var(--border); border-radius:4px; overflow:hidden; position:relative;">
+              <div style="width:6.38%; height:100%; background:var(--foam); border-radius:4px;"></div>
+              <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--muted);">40 clicks · 6.4%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-size:12px; color:var(--muted); width:40px;">25–34</div>
+            <div style="flex:1; height:22px; background:var(--border); border-radius:4px; overflow:hidden; position:relative;">
+              <div style="width:38.76%; height:100%; background:var(--wave); border-radius:4px;"></div>
+              <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#fff; font-weight:600;">243 clicks · 38.8% ⭐</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-size:12px; color:var(--muted); width:40px;">35–44</div>
+            <div style="flex:1; height:22px; background:var(--border); border-radius:4px; overflow:hidden; position:relative;">
+              <div style="width:26.48%; height:100%; background:var(--ocean); border-radius:4px; opacity:0.8;"></div>
+              <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#fff; font-weight:600;">166 clicks · 26.5%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-size:12px; color:var(--muted); width:40px;">45–54</div>
+            <div style="flex:1; height:22px; background:var(--border); border-radius:4px; overflow:hidden; position:relative;">
+              <div style="width:18.18%; height:100%; background:var(--ocean); border-radius:4px; opacity:0.5;"></div>
+              <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text);">114 clicks · 18.2%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-size:12px; color:var(--muted); width:40px;">55–64</div>
+            <div style="flex:1; height:22px; background:var(--border); border-radius:4px; overflow:hidden; position:relative;">
+              <div style="width:8.29%; height:100%; background:var(--border); border-radius:4px;"></div>
+              <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--muted);">52 clicks · 8.3%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="font-size:12px; color:var(--muted); width:40px;">65+</div>
+            <div style="flex:1; height:22px; background:var(--border); border-radius:4px; overflow:hidden; position:relative;">
+              <div style="width:2.23%; height:100%; background:var(--border); border-radius:4px;"></div>
+              <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--muted);">14 clicks · 2.2%</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px; background:var(--foam); border-radius:8px; padding:10px; font-size:12px; color:var(--ocean);">
+          <strong>25–44 = 65% of all clicks.</strong> Core audience is working-age millennials/Gen X — ideal for corporate events, group boat trips and experience gifts. Bid higher for this bracket.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Gender Split <span class="card-title-badge">by Clicks</span></div>
+
+        <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
+          <div style="flex:1; text-align:center; background:var(--surface); border-radius:12px; padding:20px;">
+            <div style="font-size:32px; margin-bottom:6px;">♀</div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:28px; color:var(--wave);">66.5%</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:4px;">Female · 417 clicks</div>
+          </div>
+          <div style="flex:1; text-align:center; background:var(--surface); border-radius:12px; padding:20px;">
+            <div style="font-size:32px; margin-bottom:6px;">♂</div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:28px; color:var(--muted);">33.5%</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:4px;">Male · 210 clicks</div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px;">Top female segments:</div>
+        <div style="font-size:12px; color:var(--muted); display:flex; flex-direction:column; gap:4px; margin-bottom:14px;">
+          <div>• <strong>F 25–34:</strong> 173 clicks · 27.6% of all known traffic</div>
+          <div>• <strong>F 35–44:</strong> 102 clicks · 16.3%</div>
+          <div>• <strong>F 45–54:</strong> 75 clicks · 12%</div>
+        </div>
+
+        <div style="background:var(--gold-light); border-radius:8px; padding:10px; font-size:12px; color:#b07a00;">
+          <strong>Women 25–44 are your #1 audience</strong> — likely organising team events, birthday boat trips and group experiences. Your ad copy and landing pages should speak directly to them.
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY/HOUR HEATMAP + SEARCH TERMS -->
+    <div class="two-col" style="margin-top:20px;">
+
+      <div class="card">
+        <div class="card-title">CTR by Day of Week <span class="card-title-badge">Ads performance</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--text); font-weight:600;">Sunday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:relative;">
+              <div style="width:100%; height:100%; background:linear-gradient(90deg, var(--green), #1fc47e); border-radius:5px;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#fff; font-weight:700;">14.75% ⭐</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--muted);">Monday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:relative;">
+              <div style="width:59.8%; height:100%; background:var(--wave); border-radius:5px;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text);">8.83%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--muted);">Tuesday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:relative;">
+              <div style="width:58%; height:100%; background:var(--wave); border-radius:5px; opacity:0.8;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text);">8.56%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--muted);">Wednesday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:hidden; position:relative;">
+              <div style="width:60.3%; height:100%; background:var(--wave); border-radius:5px; opacity:0.8;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text);">8.90%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--muted);">Thursday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:relative;">
+              <div style="width:63%; height:100%; background:var(--wave); border-radius:5px; opacity:0.8;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text);">9.29%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--muted);">Friday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:relative;">
+              <div style="width:63.6%; height:100%; background:var(--wave); border-radius:5px; opacity:0.8;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text);">9.38%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:80px; font-size:12px; color:var(--coral); font-weight:600;">Saturday</div>
+            <div style="flex:1; height:24px; background:var(--border); border-radius:5px; overflow:hidden; position:relative;">
+              <div style="width:37.7%; height:100%; background:var(--coral); border-radius:5px; opacity:0.5;"></div>
+              <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--coral); font-weight:600;">5.56% ↓</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px; background:var(--green-light); border-radius:8px; padding:10px; font-size:12px; color:var(--green);">
+          <strong>Sunday CTR (14.75%) is nearly double any weekday</strong> — but ads are currently off on weekends. This is lost high-intent traffic. Test Sunday budget.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">CTR by Hour <span class="card-title-badge">Peak windows</span></div>
+        <div style="display:flex; align-items:flex-end; gap:4px; height:80px; margin-bottom:12px;">
+          <!-- Hours 0-8 = 0% -->
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="12AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="1AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="2AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="3AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="4AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="5AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="6AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="7AM: 0%"></div>
+          <div style="flex:1; background:var(--border); border-radius:2px 2px 0 0; height:2px;" title="8AM: 0%"></div>
+          <!-- 9AM 8.11% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:54px; opacity:0.7;" title="9AM: 8.11%"></div>
+          <!-- 10AM 9.19% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:61px; opacity:0.75;" title="10AM: 9.19%"></div>
+          <!-- 11AM 10.16% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:68px;" title="11AM: 10.16%"></div>
+          <!-- 12PM 8.05% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:54px; opacity:0.7;" title="12PM: 8.05%"></div>
+          <!-- 1PM 7.88% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:53px; opacity:0.65;" title="1PM: 7.88%"></div>
+          <!-- 2PM 8.93% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:60px; opacity:0.7;" title="2PM: 8.93%"></div>
+          <!-- 3PM 7.38% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:50px; opacity:0.6;" title="3PM: 7.38%"></div>
+          <!-- 4PM 11.54% PEAK -->
+          <div style="flex:1; background:var(--coral); border-radius:2px 2px 0 0; height:77px;" title="4PM: 11.54% PEAK"></div>
+          <!-- 5PM 9.65% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:64px; opacity:0.8;" title="5PM: 9.65%"></div>
+          <!-- 6PM 9.60% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:64px; opacity:0.8;" title="6PM: 9.60%"></div>
+          <!-- 7PM 8.82% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:59px; opacity:0.7;" title="7PM: 8.82%"></div>
+          <!-- 8PM 7.96% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:53px; opacity:0.65;" title="8PM: 7.96%"></div>
+          <!-- 9PM 7.91% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:53px; opacity:0.65;" title="9PM: 7.91%"></div>
+          <!-- 10PM 8.89% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:59px; opacity:0.7;" title="10PM: 8.89%"></div>
+          <!-- 11PM 9.52% -->
+          <div style="flex:1; background:var(--wave); border-radius:2px 2px 0 0; height:64px; opacity:0.75;" title="11PM: 9.52%"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-bottom:12px;">
+          <span>12AM</span><span>6AM</span><span>12PM</span><span>4PM ▲</span><span>11PM</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:var(--coral-light); border-radius:8px; padding:10px; font-size:12px; color:var(--coral);">
+            <strong>Peak: 4PM</strong><br>11.54% CTR — end of workday decision window
+          </div>
+          <div style="background:var(--foam); border-radius:8px; padding:10px; font-size:12px; color:var(--ocean);">
+            <strong>Strong: 11AM</strong><br>10.16% CTR — morning browse peak
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP SEARCH TERMS -->
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title">Top Search Terms Triggering Ads <span class="card-title-badge">Actual searches · conversions = inquiries</span></div>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;">
+        <div style="background:var(--surface); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px;">team building</div>
+          <div style="font-size:11px; color:var(--muted);">10 clicks · €15.30 · 182 impr.</div>
+        </div>
+        <div style="background:var(--surface); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px;">organização de eventos</div>
+          <div style="font-size:11px; color:var(--muted);">6 clicks · €7.80 · 38 impr.</div>
+        </div>
+        <div style="background:var(--surface); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px;">boot huren 🇳🇱</div>
+          <div style="font-size:11px; color:var(--muted);">5 clicks · €6.67 · 64 impr.</div>
+        </div>
+        <div style="background:var(--surface); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px;">boat lisbon</div>
+          <div style="font-size:11px; color:var(--muted);">3 clicks · €3.69 · 4 impr.</div>
+        </div>
+        <div style="background:var(--surface); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px;">boat trip lisbon</div>
+          <div style="font-size:11px; color:var(--muted);">3 clicks · €4.46 · 16 impr.</div>
+        </div>
+        <div style="background:var(--surface); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px;">sea bookings</div>
+          <div style="font-size:11px; color:var(--muted);">4 clicks · €3.64 · 7 impr.</div>
+        </div>
+        <div style="background:var(--coral-light); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px; color:var(--coral);">palmayachts lisbon ⚠️</div>
+          <div style="font-size:11px; color:var(--coral);">2 clicks · €2.26 — competitor brand</div>
+        </div>
+        <div style="background:var(--coral-light); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px; color:var(--coral);">entertee hire services ⚠️</div>
+          <div style="font-size:11px; color:var(--coral);">1 click · €1.76 — irrelevant</div>
+        </div>
+        <div style="background:var(--coral-light); border-radius:8px; padding:10px;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:2px; color:var(--coral);">escape room empresas ⚠️</div>
+          <div style="font-size:11px; color:var(--coral);">1 click · €1.32 — irrelevant</div>
+        </div>
+      </div>
+      <div style="margin-top:12px; background:var(--coral-light); border-radius:8px; padding:12px; font-size:12px; color:var(--coral);">
+        <strong>⚠️ Broad match is bleeding budget.</strong> You're paying for competitor names (palmayachts), unrelated services (escape rooms, entertee hire), and low-intent generic terms. Add these as negative keywords immediately and tighten to Phrase/Exact match on your top spenders.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BLOG TAB -->
+  <div class="tab-panel" id="tab-blog">
+
+    <div class="section-label">Content Strategy</div>
+
+    <!-- BLOG INTRO BANNER -->
+    <div style="background: linear-gradient(135deg, #0a2a3a 0%, #0d3d55 100%); border: 1px solid rgba(26,127,160,0.4); border-left: 4px solid var(--wave); border-radius: 12px; padding: 18px 24px; margin-bottom: 28px; display:flex; gap:16px; align-items:flex-start;">
+      <div style="font-size:24px;">✍️</div>
+      <div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:14px; color:#a8d8ea; margin-bottom:6px;">Blog = your highest-ROI marketing channel right now</div>
+        <div style="font-size:12.5px; color:rgba(255,255,255,0.65); line-height:1.6;">
+          The "How to Get to Benagil Cave" page already proves it: <strong style="color:rgba(255,255,255,0.85)">informational content attracts high-intent traffic at zero cost</strong>. 
+          Every post below targets a real search intent signal from your GA4 and Ads data — people already searching for these things, just not finding SeaBookings yet.
+          Posts are grouped by priority: <strong style="color:rgba(255,255,255,0.85)">SEO quick wins</strong>, <strong style="color:rgba(255,255,255,0.85)">destination guides</strong>, <strong style="color:rgba(255,255,255,0.85)">corporate/events</strong>, and <strong style="color:rgba(255,255,255,0.85)">seasonal</strong>.
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER ROW -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px;" id="blog-filters">
+      <button class="blog-filter-btn active" onclick="filterBlog('all', this)">All Posts</button>
+      <button class="blog-filter-btn" onclick="filterBlog('seo', this)">⚡ SEO Quick Wins</button>
+      <button class="blog-filter-btn" onclick="filterBlog('destination', this)">🗺️ Destination Guides</button>
+      <button class="blog-filter-btn" onclick="filterBlog('corporate', this)">🏢 Corporate & Events</button>
+      <button class="blog-filter-btn" onclick="filterBlog('seasonal', this)">🌞 Seasonal</button>
+    </div>
+
+    <!-- BLOG CARDS GRID -->
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;" id="blog-grid">
+
+      <!-- SEO QUICK WINS -->
+      <div class="blog-card" data-cat="seo">
+        <div class="blog-cat seo">⚡ SEO Quick Win</div>
+        <div class="blog-title">How to Get from Lisbon to Cascais by Boat</div>
+        <div class="blog-why">🔍 Signal: "boat trip lisbon to cascais" appearing in paid search terms. High intent, zero organic content.</div>
+        <div class="blog-body">Cover routes, timings, what to expect, and embed your best Lisbon cruise listings. Target commuters + tourists. Benagil Cave-style format — informational first, booking CTA at the end.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Lisbon</span>
+          <span class="blog-tag">SEO</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="seo">
+        <div class="blog-cat seo">⚡ SEO Quick Win</div>
+        <div class="blog-title">Vienna to Budapest by Boat — The Complete Guide</div>
+        <div class="blog-why">📊 Signal: 1.9k page views with zero bookings. People are landing, intent is there, but there's no content to hold them.</div>
+        <div class="blog-body">Full guide: duration, stops, what's included, best operators, how to book. Add comparison table (day cruise vs multi-day). Embed GetYourGuide widget directly in the article. This page already has traffic — it just needs content.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Vienna</span>
+          <span class="blog-tag">Budapest</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="seo">
+        <div class="blog-cat seo">⚡ SEO Quick Win</div>
+        <div class="blog-title">Best Boat Trips in the Algarve (Updated 2026)</div>
+        <div class="blog-why">📊 Signal: Vilamoura/Algarve is your top-converting region. Organic search should be feeding this, not just paid.</div>
+        <div class="blog-body">Cover: Benagil Cave tours, Vilamoura to Portimão, sunset cruises, fishing trips, family-friendly options. Include a "best for..." comparison table. Target "algarve boat trip", "best boat tours algarve", "vilamoura boat excursions".</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Algarve</span>
+          <span class="blog-tag">Portugal</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="seo">
+        <div class="blog-cat seo">⚡ SEO Quick Win</div>
+        <div class="blog-title">Alugar Barco em Lisboa — Guia Completo (PT)</div>
+        <div class="blog-why">💰 Signal: "alugar barco para aniversario" had 20% CTR in paid ads — highest intent keyword in the whole account.</div>
+        <div class="blog-body">Portuguese-language guide to renting boats in Lisbon: for birthdays, corporate events, tourist cruises. Separate sections for different use cases. Targets the exact search intent your ads are already paying for — capture it organically too.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Lisboa</span>
+          <span class="blog-tag">Português</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="seo">
+        <div class="blog-cat seo">⚡ SEO Quick Win</div>
+        <div class="blog-title">Boot Huren in Portugal — Alles wat je moet weten (NL)</div>
+        <div class="blog-why">🇳🇱 Signal: Dutch "boot huren", "feestboot huren", "partyboot huren" searches appearing in both paid and organic. Netherlands is 13% of ad clicks.</div>
+        <div class="blog-body">Dutch-language guide to renting boats in Portugal (Lisbon, Algarve). Covers pricing, types, what's included, best areas. Direct-to-book CTA. Targets a gap: no Dutch-language watersports content exists for Portugal.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Nederlands</span>
+          <span class="blog-tag">Portugal</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <!-- DESTINATION GUIDES -->
+      <div class="blog-card" data-cat="destination">
+        <div class="blog-cat destination">🗺️ Destination Guide</div>
+        <div class="blog-title">Whale Watching in the Azores — Everything You Need to Know</div>
+        <div class="blog-why">📊 Signal: São Miguel snorkeling tour has 5.1% CR — one of your best converters. Azores organic search is untapped.</div>
+        <div class="blog-body">When to go, which islands, blue whale vs sperm whale seasons, best operators. Embed whale watching + snorkeling GetYourGuide listings. Target "whale watching azores", "best time azores", "whale watching são miguel". Long-tail, low-competition, high-intent.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Azores</span>
+          <span class="blog-tag">Portugal</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="destination">
+        <div class="blog-cat destination">🗺️ Destination Guide</div>
+        <div class="blog-title">The Best Sailing Experiences in Valencia</div>
+        <div class="blog-why">📊 Signal: Valencia is your #1 converting city. The catamaran sunset DJ (5.3% CR) and private boat cruise (8.7% CR) need organic support.</div>
+        <div class="blog-body">Sunset catamarans, private yacht charters, group party boats, family cruises. Seasonal breakdown (best months), price guide, what to expect. Target "sailing valencia", "catamaran valencia", "boat trip valencia". In English and Spanish.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Valencia</span>
+          <span class="blog-tag">Spain</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="destination">
+        <div class="blog-cat destination">🗺️ Destination Guide</div>
+        <div class="blog-title">Sailing in Corfu: Island-Hopping, Paxos & the Blue Caves</div>
+        <div class="blog-why">🌞 Signal: Corfu has dozens of listings (Paxos cruises, parasailing, catamaran charters) with visitor traffic but zero conversions — pre-season opportunity.</div>
+        <div class="blog-body">The definitive Corfu sailing guide: Paxos/Antipaxos day trips, private catamaran hire, what each type of boat trip is like. Seasonal guide (April–October). This builds organic authority before the summer surge.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Corfu</span>
+          <span class="blog-tag">Greece</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="destination">
+        <div class="blog-cat destination">🗺️ Destination Guide</div>
+        <div class="blog-title">Douro River Cruises in Porto — The Ultimate Guide</div>
+        <div class="blog-why">📊 Signal: Porto sailboat + Port Wine has 7.1% CR. Strong converters need organic discovery, not just paid.</div>
+        <div class="blog-body">Six Bridges cruise, sunset sailing, full-day Douro valley wine trips. Cover the difference between the short city cruise and the multi-hour valley trip. Price comparison, booking tips, best time of year. German and UK audiences are your core Porto market.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Porto</span>
+          <span class="blog-tag">Portugal</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="destination">
+        <div class="blog-cat destination">🗺️ Destination Guide</div>
+        <div class="blog-title">Catamaran Charter in Croatia — Hvar, Split & the Dalmatian Coast</div>
+        <div class="blog-why">🌞 Signal: Croatia has high listing volume (Blue Cave, Vis, Hvar) and will see summer surge traffic. Build authority now.</div>
+        <div class="blog-body">How to choose between group tours and private charters, island-hopping routes, must-see stops, pricing guide, best booking window (book 6–8 weeks ahead for July/August). In English and German — your core Croatia demographic.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Croatia</span>
+          <span class="blog-tag">Summer</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <!-- CORPORATE & EVENTS -->
+      <div class="blog-card" data-cat="corporate">
+        <div class="blog-cat corporate">🏢 Corporate & Events</div>
+        <div class="blog-title">Team Building on the Water — 10 Boat Ideas for Corporate Groups</div>
+        <div class="blog-why">💰 Signal: "team building" = 37% of your entire ad spend. Capture this organically and stop paying €329 every 90 days for a broad keyword.</div>
+        <div class="blog-body">Cover 10 real experience types: private yacht for 20–50 people, sailing regattas, beach BBQ cruises, sunset cocktail charters. Include price ranges, group size guides, Lisbon + Porto + Algarve options. Target "team building boat lisbon", "corporate boat hire portugal", "team event boat". This post can replace a large chunk of your ad spend on "team building" over time.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Corporate</span>
+          <span class="blog-tag">Team Building</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="corporate">
+        <div class="blog-cat corporate">🏢 Corporate & Events</div>
+        <div class="blog-title">How to Organise a Birthday Party on a Boat in Lisbon</div>
+        <div class="blog-why">💰 Signal: "alugar barco para aniversario" (20% CTR), "aniversario barco lisboa" appearing in search terms. This is the #1 private occasion use case.</div>
+        <div class="blog-body">Step-by-step planning guide: how many people, what types of boats, what's typically included (catering, DJ, photographer), how far in advance to book. Include a price guide and FAQ. Female 25–44 — your biggest ad audience — are the ones organising these events. Write for them.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Events</span>
+          <span class="blog-tag">Lisbon</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="corporate">
+        <div class="blog-cat corporate">🏢 Corporate & Events</div>
+        <div class="blog-title">Eventos Corporativos em Barco — Guia para Empresas (PT)</div>
+        <div class="blog-why">💰 Signal: "eventos corporativos", "organização de eventos", "empresas de eventos" all appear heavily in your search term data — and Portugal is 64% of paid clicks.</div>
+        <div class="blog-body">Portuguese-language guide aimed at event coordinators and office managers. Covers: tipos de embarcações, capacidade, serviços incluídos (catering, AV, branding), locais (Lisboa, Porto, Algarve), e como pedir orçamento. Strong inquiry driver for your corporate events funnel.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Corporate</span>
+          <span class="blog-tag">Português</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="corporate">
+        <div class="blog-cat corporate">🏢 Corporate & Events</div>
+        <div class="blog-title">Hen Party Boat Ideas in Portugal — The Ultimate Planning Guide</div>
+        <div class="blog-why">👩 Signal: Female 25–34 is your biggest ad audience (27.6% of all clicks). "Despedida solteira barco" appeared in search terms. High value, low competition keyword.</div>
+        <div class="blog-body">Lisbon, Algarve and Azores options. Cover: what's included in a hen party boat package, how to personalise it, what to bring, price guide. Friendly, fun tone. Ideal piece to share on social — high virality potential. Cross-link to birthday boat article.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Events</span>
+          <span class="blog-tag">Portugal</span>
+          <span class="blog-effort easy">Easy</span>
+        </div>
+      </div>
+
+      <!-- SEASONAL -->
+      <div class="blog-card" data-cat="seasonal">
+        <div class="blog-cat seasonal">🌞 Seasonal</div>
+        <div class="blog-title">Best Boat Trips in Europe in Summer 2026 — The Ultimate Bucket List</div>
+        <div class="blog-why">🌞 Signal: Your listing catalog spans 40+ countries. One authoritative "best of" roundup captures broad top-of-funnel traffic and links to all destination pages.</div>
+        <div class="blog-body">Top 15 boat experiences across Europe: Santorini catamaran, Corfu island hopping, Dubrovnik sea kayaking, Azores whale watching, Valencia sunset catamaran, Benagil Cave. Each section links to your bookable listings. Publish in April to catch early summer search traffic.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Europe</span>
+          <span class="blog-tag">Summer 2026</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="seasonal">
+        <div class="blog-cat seasonal">🌞 Seasonal</div>
+        <div class="blog-title">Greece Island Hopping by Boat — Where to Go in 2026</div>
+        <div class="blog-why">🌞 Signal: Greece (Corfu, Zakynthos, Santorini, Athens, Mykonos) has zero conversions now but will surge May–August. Germans and Brits are booking now.</div>
+        <div class="blog-body">Cover the best routes (Ionian Islands, Cyclades, Dodecanese), how to choose between ferries, day trips and private charters, and how far in advance to book. Publish now — Greek island searches peak 8–12 weeks before travel. Strong target: UK and German readers.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Greece</span>
+          <span class="blog-tag">Summer</span>
+          <span class="blog-effort hard">In-depth</span>
+        </div>
+      </div>
+
+      <div class="blog-card" data-cat="seasonal">
+        <div class="blog-cat seasonal">🌞 Seasonal</div>
+        <div class="blog-title">The Best Winter Boat Experiences in Europe</div>
+        <div class="blog-why">📊 Signal: Your peak traffic was in Feb–March (GA4 data shows a traffic spike). Winter activity demand is real and underserved by content.</div>
+        <div class="blog-body">Cover destinations with year-round boat trips: Lisbon, Algarve, Canary Islands, Madeira, Malta. Frame as an alternative to ski holidays. "Winter sun + water" angle. Target off-season bookers — less competition for keywords, higher intent from people actively planning.</div>
+        <div class="blog-meta">
+          <span class="blog-tag">Winter</span>
+          <span class="blog-tag">Europe</span>
+          <span class="blog-effort medium">Medium</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CONTENT CALENDAR CTA -->
+    <div style="margin-top:28px; background: var(--card-bg); border: 1px solid var(--border); border-radius:14px; padding:22px 24px;">
+      <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:15px; margin-bottom:12px;">📅 Suggested Publishing Order</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+        <div style="background:var(--coral-light); border-radius:10px; padding:14px;">
+          <div style="font-size:11px; font-weight:700; color:var(--coral); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px;">April (Now)</div>
+          <div style="font-size:12px; color:var(--text); display:flex; flex-direction:column; gap:5px;">
+            <div>→ Vienna–Budapest guide</div>
+            <div>→ Best of Algarve boats</div>
+            <div>→ Team building on water</div>
+          </div>
+        </div>
+        <div style="background:var(--gold-light); border-radius:10px; padding:14px;">
+          <div style="font-size:11px; font-weight:700; color:#b07a00; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px;">May</div>
+          <div style="font-size:12px; color:var(--text); display:flex; flex-direction:column; gap:5px;">
+            <div>→ Greece island hopping</div>
+            <div>→ Corfu sailing guide</div>
+            <div>→ Best summer Europe roundup</div>
+          </div>
+        </div>
+        <div style="background:var(--green-light); border-radius:10px; padding:14px;">
+          <div style="font-size:11px; font-weight:700; color:var(--green); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px;">June</div>
+          <div style="font-size:12px; color:var(--text); display:flex; flex-direction:column; gap:5px;">
+            <div>→ Croatia catamaran guide</div>
+            <div>→ Birthday boat Lisbon (PT)</div>
+            <div>→ Hen party Portugal</div>
+          </div>
+        </div>
+        <div style="background:var(--foam); border-radius:10px; padding:14px;">
+          <div style="font-size:11px; font-weight:700; color:var(--ocean); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px;">July+</div>
+          <div style="font-size:12px; color:var(--text); display:flex; flex-direction:column; gap:5px;">
+            <div>→ Dutch NL guide</div>
+            <div>→ Azores whale watching</div>
+            <div>→ Winter boats Europe</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <strong>SeaBookings Analytics Dashboard</strong> · 90-day period Jan 22 – Apr 21, 2026 · Data source: Google Analytics 4 · ⚠️ Bot-adjusted estimates applied for Japan, Hong Kong & Singapore · Built for internal team use
+</footer>
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function filterBlog(cat, btn) {
+  document.querySelectorAll('.blog-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.blog-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+
+function setFilter(mode) {
+  const body = document.body;
+  const btnRaw = document.getElementById('btn-raw');
+  const btnClean = document.getElementById('btn-clean');
+
+  if (mode === 'clean') {
+    body.classList.add('bot-filtered');
+    btnClean.classList.add('active');
+    btnRaw.classList.remove('active');
+  } else {
+    body.classList.remove('bot-filtered');
+    btnRaw.classList.add('active');
+    btnClean.classList.remove('active');
+  }
+}
+</script>
+
+</body>
+</html>
